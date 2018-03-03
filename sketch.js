@@ -1,30 +1,45 @@
 
 var warnedData = false;
+var slider, sliderVal;
 
 function setup() {
   // put setup code here
-  createCanvas(800,800);
 
+  textSize(14);
+
+
+  slider = createSlider(1, 200, 100, 1);
+
+
+  slider.style('width', '800px');
+  console.log('Slider now functioning.');
+
+  createElement('hr');
+  createCanvas(800,800);
+  sliderVal = 0;
 }
 
+
 function draw() {
-  // put drawing code here
-  if (frameCount % 60 == 0) {
+
+
+  if (sliderVal != slider.value()) {
+    sliderVal = slider.value();
     background(0);
-    plotData(randomArray(10,0,10), 800, 800);
+    plotData(randomArray(slider.value(),0,100), 800, 800);
   }
 }
 
 function randomArray(size, min, max) {
   var data = [];
-  for(var i = 0 ; i < 50 ; i++) {
-    append(data, random(0,100));
+  for(var i = 0 ; i < size ; i++) {
+    append(data, random(min, max));
   }
   return data;
 }
 
 
-function plotData(inData, canvasWidth, canvasHeight) {
+function plotData(inData, canvasWidth, canvasHeight, color) {
 
   var width = canvasWidth, height = canvasHeight;
   var dataWidth = inData.length;
@@ -37,16 +52,20 @@ function plotData(inData, canvasWidth, canvasHeight) {
   }
 
 
-
   for (var index in inData) {
 
-    var i = map(index, 0, dataWidth, 0, 255);
+    if (color == "rainbow") {
+      var i = map(index, 0, dataWidth, 0, 255);
 
-    var r = Math.round(Math.sin(0.024 * i + 0) * 127 + 128);
-    var g = Math.round(Math.sin(0.024 * i + 2) * 127 + 128);
-    var b = Math.round(Math.sin(0.024 * i + 4) * 127 + 128);
+      var r = Math.round(Math.sin(0.024 * i + 0) * 127 + 128);
+      var g = Math.round(Math.sin(0.024 * i + 2) * 127 + 128);
+      var b = Math.round(Math.sin(0.024 * i + 4) * 127 + 128);
 
-    fill(r,g,b);
+      fill(r,g,b);
+    } else if (color != null) {
+      fill(color);
+    }
+
 
     rect(
       (index) * (scale * width / dataWidth),
