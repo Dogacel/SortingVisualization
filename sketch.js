@@ -9,6 +9,8 @@ var updateCaller = true;
 
 var canvas;
 
+var currentArray;
+
 function setup() {
 
   let canvasWidth = 600, canvasHeight = 600;
@@ -22,10 +24,14 @@ function setup() {
     updateSent()
   });
 
+  let regenButton = createButton("Regenerate Data");
+  regenButton.mouseClicked(() => {
+    updateSent()
+  });
+
   colorButton = createCheckbox('Rainbow mode');
   colorButton.mouseClicked(() => {
     rainbow = colorButton.checked();
-    updateSent();
   });
 
   hr();
@@ -37,32 +43,6 @@ function setup() {
   maxSlider.style('width', canvasWidth / 2 - 5 + 'px');
 
   let pressed = false;
-
-  sizeSlider.mousePressed(() => {
-    pressed = true;
-  });
-
-  sizeSlider.mouseReleased(() => {
-    pressed = false;
-  });
-
-  sizeSlider.mouseMoved(() => {
-    if (pressed)
-      updateSent();
-  });
-
-  maxSlider.mousePressed(() => {
-    pressed = true;
-  });
-
-  maxSlider.mouseReleased(() => {
-    pressed = false;
-  });
-
-  maxSlider.mouseMoved(() => {
-    if (pressed)
-      updateSent();
-  });
 
   hr();
 
@@ -86,12 +66,18 @@ function updateRecieved() {
 
 function draw() {
 
-  if (updateCaller) {
-    updateRecieved();
+  if (updateCaller || sizeSliderValue != sizeSlider.value() || maxSliderValue != maxSlider.value()) {
 
-    background(0);
-    plotData(randomArray(sizeSlider.value(), 0, maxSlider.value()), canvas.width, canvas.height, rainbow);
+    maxSliderValue = maxSlider.value();
+    sizeSliderValue = sizeSlider.value();
+
+    currentArray = randomArray(sizeSlider.value(), 0, maxSlider.value());
+
+    updateRecieved();
   }
+
+  background(0);
+  plotData(currentArray, canvas.width, canvas.height, rainbow);
 }
 
 function randomArray(size, min, max) {
@@ -129,7 +115,7 @@ function plotData(inData, canvasWidth, canvasHeight, color) {
     } else if (color != null && color != false) {
       fill(color);
     } else {
-      fill(255);
+      fill(233, 233, 233);
     }
 
 
