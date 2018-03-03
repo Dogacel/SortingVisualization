@@ -1,39 +1,103 @@
 
 var warnedData = false;
-var slider, sliderVal;
+
+var sizeSlider, sizeSliderValue;
+var maxSlider, maxSliderValue;
+var rainbow;
+
+var updateCaller = true;
+
+var canvas;
 
 function setup() {
-  // put setup code here
 
-  textSize(14);
+  let canvasWidth = 600, canvasHeight = 600;
 
+  hr();
 
-  slider = createSlider(1, 200, 100, 1);
+  let resetButton = createButton("Reset");
+  resetButton.mouseClicked(() => {
+    sizeSlider.value(canvasWidth / 8);
+    maxSlider.value(canvasHeight / 8);
+    updateSent()
+  });
 
+  colorButton = createCheckbox('Rainbow mode');
+  colorButton.mouseClicked(() => {
+    rainbow = colorButton.checked();
+    updateSent();
+  });
 
-  slider.style('width', '800px');
-  console.log('Slider now functioning.');
+  hr();
 
-  createElement('hr');
-  createCanvas(800,800);
-  sliderVal = 0;
+  sizeSlider = createSlider(2, canvasWidth / 4, canvasWidth / 8, 1);
+  maxSlider = createSlider(2, canvasHeight / 4, canvasHeight / 8, 1);
+
+  sizeSlider.style('width', canvasWidth / 2 - 5 + 'px');
+  maxSlider.style('width', canvasWidth / 2 - 5 + 'px');
+
+  let pressed = false;
+
+  sizeSlider.mousePressed(() => {
+    pressed = true;
+  });
+
+  sizeSlider.mouseReleased(() => {
+    pressed = false;
+  });
+
+  sizeSlider.mouseMoved(() => {
+    if (pressed)
+      updateSent();
+  });
+
+  maxSlider.mousePressed(() => {
+    pressed = true;
+  });
+
+  maxSlider.mouseReleased(() => {
+    pressed = false;
+  });
+
+  maxSlider.mouseMoved(() => {
+    if (pressed)
+      updateSent();
+  });
+
+  hr();
+
+  canvas = createCanvas(canvasWidth, canvasHeight);
+
+  console.log("Setup complete !");
+
 }
 
+function hr() {
+  createElement('hr');
+}
+
+function updateSent() {
+  updateCaller = true;
+}
+
+function updateRecieved() {
+  updateCaller = false;
+}
 
 function draw() {
 
+  if (updateCaller) {
+    updateRecieved();
 
-  if (sliderVal != slider.value()) {
-    sliderVal = slider.value();
     background(0);
-    plotData(randomArray(slider.value(),0,100), 800, 800);
+    plotData(randomArray(sizeSlider.value(), 0, maxSlider.value()), canvas.width, canvas.height, rainbow);
   }
 }
 
 function randomArray(size, min, max) {
   var data = [];
   for(var i = 0 ; i < size ; i++) {
-    append(data, random(min, max));
+    append(data,  int(random(min, max)));
   }
   return data;
 }
@@ -54,7 +118,7 @@ function plotData(inData, canvasWidth, canvasHeight, color) {
 
   for (var index in inData) {
 
-    if (color == "rainbow") {
+    if (color == "rainbow" || color == true) {
       var i = map(index, 0, dataWidth, 0, 255);
 
       var r = Math.round(Math.sin(0.024 * i + 0) * 127 + 128);
@@ -62,8 +126,10 @@ function plotData(inData, canvasWidth, canvasHeight, color) {
       var b = Math.round(Math.sin(0.024 * i + 4) * 127 + 128);
 
       fill(r,g,b);
-    } else if (color != null) {
+    } else if (color != null && color != false) {
       fill(color);
+    } else {
+      fill(255);
     }
 
 
