@@ -3,7 +3,9 @@ var warnedData = false;
 
 var sizeSlider, sizeSliderValue;
 var maxSlider, maxSliderValue;
-var timeSlider, timeScaleValue;
+var timeSlider;
+var functionChooser;
+
 var rainbow;
 
 var updateCaller = true;
@@ -35,10 +37,16 @@ function setup() {
     updateSent()
   });
 
-  let sortButton = createButton("Sort Data");
+  let sortButton = createButton("Sort Data with : ");
   sortButton.mouseClicked(() => {
     bubbleSort(currentArray);
   });
+
+
+  functionChooser = createSelect('Algorithm: ');
+
+  functionChooser.child(createElement('option', 'bubbleSort'));
+
 
   colorButton = createCheckbox('Rainbow mode');
   colorButton.mouseClicked(() => {
@@ -50,7 +58,7 @@ function setup() {
   sizeSlider = createSlider(2, canvasWidth / 4, canvasWidth / 8, 1);
   maxSlider = createSlider(2, canvasHeight / 4, canvasHeight / 8, 1);
   hr();
-  timeSlider = createSlider(1, 200, 20, 1);
+  timeSlider = createSlider(1, 10, 3, 1);
 
   sizeSlider.style('width', canvasWidth / 2 - 5 + 'px');
   maxSlider.style('width', canvasWidth / 2 - 5 + 'px');
@@ -86,7 +94,6 @@ function draw() {
     sizeSliderValue = sizeSlider.value();
 
     currentArray = randomArray(sizeSlider.value(), 0, maxSlider.value());
-
     updateRecieved();
   }
 
@@ -115,31 +122,36 @@ async function bubbleSort(arr) {
     for (let j = 0 ; j < arr.length - 1 ; j++) {
       c1 = j;
       c2 = j+1;
+
+      await tick(arr, c1, c2);
       if (arr[c1] > arr[c2]) { //Swap
         let tmp = arr[c1];
         arr[c1] = arr[c2];
         arr[c2] = tmp;
         ok = false;
+        await tick(arr, c2, c1);
       }
-      await tick(arr, c1, c2);
+
+
     }
     if(ok) {
       break;
     }
   }
+  specialRows = [];
   console.log("Finished");
 }
 
 async function tick(dataArray, ...pivots) {
   if (dataArray == currentArray) {
-    await sleep(timeSlider.value());
     specialRows = [];
     for (let index = 0 ; index < pivots.length ; index++) {
       let c = colors[index];
       append(specialRows, pivots[index]);
       append(specialRows, c);
     }
-      //console.log('running');
+    await sleep(pow(2, timeSlider.value()));
+    //console.log('running');
   }
 }
 
