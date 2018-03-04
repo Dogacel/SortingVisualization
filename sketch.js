@@ -1,4 +1,6 @@
 
+//Global variables
+
 var warnedData = false;
 
 var sizeSlider, sizeSliderValue;
@@ -16,6 +18,44 @@ var currentArray;
 
 var colors, specialRows;
 
+
+//Various functions
+
+function warnDataOnce(scale) {
+  if (!warnedData) {
+    console.warn("Dataset can't fit to desired area. Graph will show 1 column for " + scale + " element.");
+    warnedData = !warnedData;
+  }
+}
+
+function randomArray(size, min, max) {
+  var data = [];
+  for(var i = 0 ; i < size ; i++) {
+    append(data,  int(random(min, max)));
+  }
+  return data;
+}
+
+function hr() {
+  createElement('hr');
+}
+
+function updateSent() {
+  updateCaller = true;
+}
+
+function updateRecieved() {
+  updateCaller = false;
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
+//Setup canvas and other tools.
+
 function setup() {
 
   colors = [color(0,0,255), color(0,255,0), color(255,0,0), color(255,255,0), color(255,0,255), color(0,255,255)];
@@ -27,7 +67,7 @@ function setup() {
 
   let resetButton = createButton("Reset");
   resetButton.mouseClicked(() => {
-    sizeSlider.value(canvasWidth / 8);
+    sizeSlider.value(20);
     maxSlider.value(canvasHeight / 8);
     updateSent()
   });
@@ -39,13 +79,14 @@ function setup() {
 
   let sortButton = createButton("Sort Data with : ");
   sortButton.mouseClicked(() => {
-    bubbleSort(currentArray);
+    window[functionChooser.value()](currentArray);
   });
 
 
   functionChooser = createSelect('Algorithm: ');
 
   functionChooser.child(createElement('option', 'bubbleSort'));
+  functionChooser.child(createElement('option', 'selectionSort'))
 
 
   colorButton = createCheckbox('Rainbow mode');
@@ -55,10 +96,10 @@ function setup() {
 
   hr();
 
-  sizeSlider = createSlider(2, canvasWidth / 4, canvasWidth / 8, 1);
+  sizeSlider = createSlider(2, canvasWidth / 4, 20, 1);
   maxSlider = createSlider(2, canvasHeight / 4, canvasHeight / 8, 1);
   hr();
-  timeSlider = createSlider(1, 10, 3, 1);
+  timeSlider = createSlider(1, 10, 9, 1);
 
   sizeSlider.style('width', canvasWidth / 2 - 5 + 'px');
   maxSlider.style('width', canvasWidth / 2 - 5 + 'px');
@@ -74,17 +115,8 @@ function setup() {
 
 }
 
-function hr() {
-  createElement('hr');
-}
 
-function updateSent() {
-  updateCaller = true;
-}
-
-function updateRecieved() {
-  updateCaller = false;
-}
+//Draw method
 
 function draw() {
 
@@ -101,59 +133,10 @@ function draw() {
   plotData(currentArray, canvas.width, canvas.height, rainbow);
 }
 
-function randomArray(size, min, max) {
-  var data = [];
-  for(var i = 0 ; i < size ; i++) {
-    append(data,  int(random(min, max)));
-  }
-  return data;
-}
 
 
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function bubbleSort(arr) {
-  let c1 = 0, c2 = 0;
-  for (let i = 0 ; i < arr.length ; i++) {
-    let ok = true;
-    for (let j = 0 ; j < arr.length - 1 ; j++) {
-      c1 = j;
-      c2 = j+1;
-
-      await tick(arr, c1, c2);
-      if (arr[c1] > arr[c2]) { //Swap
-        let tmp = arr[c1];
-        arr[c1] = arr[c2];
-        arr[c2] = tmp;
-        ok = false;
-        await tick(arr, c2, c1);
-      }
-
-
-    }
-    if(ok) {
-      break;
-    }
-  }
-  specialRows = [];
-  console.log("Finished");
-}
-
-async function tick(dataArray, ...pivots) {
-  if (dataArray == currentArray) {
-    specialRows = [];
-    for (let index = 0 ; index < pivots.length ; index++) {
-      let c = colors[index];
-      append(specialRows, pivots[index]);
-      append(specialRows, c);
-    }
-    await sleep(pow(2, timeSlider.value()));
-    //console.log('running');
-  }
-}
+//Plotting and updating
 
 function plotData(inData, canvasWidth, canvasHeight, color) {
 
@@ -190,18 +173,80 @@ function plotData(inData, canvasWidth, canvasHeight, color) {
       }
     }
 
-    rect(
-      (index) * (scale * width / dataWidth),
-      height - ((inData[index]) * (height / dataHeight)),
-      (scale * width / dataWidth),
-      (inData[index]) * (height / dataHeight));
+    rect((index) * (scale * width / dataWidth),
+    height - ((inData[index]) * (height / dataHeight)),
+    (scale * width / dataWidth),
+    (inData[index]) * (height / dataHeight));
+  }
+}
+
+async function tick(dataArray, ...pivots) {
+  if (dataArray == currentArray) {
+    specialRows = [];
+    for (let index = 0 ; index < pivots.length ; index++) {
+      let c = colors[index];
+      append(specialRows, pivots[index]);
+      append(specialRows, c);
+    }
+    await sleep(pow(2, timeSlider.value()));
+    //console.log('running');
+  }
+}
+
+
+
+
+//Sorting
+
+async function selectionSort(arr) {
+  for (let i = 0 ; i < arr.length - 1 ; i++) {
+    let min = i
+    for (let j = i + 1 ; j < arr.length ; j++) {
+
+      await tick(arr, i, j, min);
+
+      if (arr[j] < arr[min]) {
+        min = j;
+      }
+
+    }
+
+    await tick(arr, i, -1, min);
+
+    let tmp = arr[min];
+    arr[min] = arr[i];
+    arr[i] = tmp;
+
+    await tick(arr, min, -1, i);
+    await tick(arr);
+  }
+}
+
+
+async function bubbleSort(arr) {
+  let c1 = 0, c2 = 0;
+  for (let i = 0 ; i < arr.length ; i++) {
+    let ok = true;
+    for (let j = 0 ; j < arr.length - 1 ; j++) {
+      c1 = j;
+      c2 = j+1;
+
+      await tick(arr, c1, c2);
+      if (arr[c1] > arr[c2]) { //Swap
+        let tmp = arr[c1];
+        arr[c1] = arr[c2];
+        arr[c2] = tmp;
+        ok = false;
+        await tick(arr, c2, c1);
+      }
+
+
+    }
+    await tick(arr);
+    if(ok) {
+      break;
     }
   }
-
-  function warnDataOnce(scale) {
-    if (!warnedData) {
-      console.warn("Dataset can't fit to desired area. Graph will show 1 column for " + scale + " element.");
-      warnedData = !warnedData;
-    }
-
-  }
+  specialRows = [];
+  console.log("Finished");
+}
