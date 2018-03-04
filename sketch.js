@@ -18,6 +18,7 @@ var currentArray;
 
 var colors, specialRows;
 
+var is3d = false;
 
 //Various functions
 
@@ -94,6 +95,11 @@ function setup() {
     rainbow = colorButton.checked();
   });
 
+  let button3d = createCheckbox('3D mode');
+  button3d.mouseClicked(() => {
+    is3d = button3d.checked();
+  });
+
   hr();
 
   sizeSlider = createSlider(2, canvasWidth / 4, 20, 1);
@@ -109,7 +115,7 @@ function setup() {
 
   hr();
 
-  canvas = createCanvas(canvasWidth, canvasHeight);
+  canvas = createCanvas(canvasWidth, canvasHeight, WEBGL);
 
   console.log("Setup complete !");
 
@@ -130,19 +136,36 @@ function draw() {
   }
 
   background(0);
-  plotData(currentArray, canvas.width, canvas.height, rainbow);
+
+  if (is3d) {
+    ambientLight(255);
+    rotateX(-PI/4);
+    rotateY(-PI/4);
+    strokeWeight(1);
+    box(10);
+
+  } else {
+    translate(-300, -300); //moves our drawing origin to the top left corner
+    plotData(currentArray, canvas.width, canvas.height, rainbow);
+  }
+
 }
 
 
 
 
 //Plotting and updating
+function plotData3D(inData, canvasWidth, canvasHeight) {
+
+}
 
 function plotData(inData, canvasWidth, canvasHeight, color) {
 
   var width = canvasWidth, height = canvasHeight;
   var dataWidth = inData.length;
-  var dataHeight = Math.max.apply(null, inData) - Math.min.apply(null, inData);
+  var maxS = Math.max.apply(null, inData);
+  var minS = Math.min.apply(null, inData);
+  var dataHeight = maxS - minS;
 
   var scale = 1;
   if (dataWidth > canvasWidth / 4) {
@@ -174,9 +197,9 @@ function plotData(inData, canvasWidth, canvasHeight, color) {
     }
 
     rect((index) * (scale * width / dataWidth),
-    height - ((inData[index]) * (height / dataHeight)),
+    height - map(inData[index], 0, maxSliderValue, 0, height),
     (scale * width / dataWidth),
-    (inData[index]) * (height / dataHeight));
+    map(inData[index], 0, maxSliderValue, 0, height));
   }
 }
 
