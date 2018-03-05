@@ -138,12 +138,14 @@ function draw() {
   background(0);
 
   if (is3d) {
-    ambientLight(255);
-    rotateX(-PI/4);
-    rotateY(-PI/4);
+    //ambientLight(255);
+    //normalMaterial()
+    rotateX(-PI/16);
+    rotateY(PI/4.5);
+    rotateZ(-1*PI/18);
+    //rotateZ(PI/4);
     strokeWeight(1);
-    box(10);
-
+    plotData3D(currentArray, canvas.width, canvas.height);
   } else {
     translate(-300, -300); //moves our drawing origin to the top left corner
     plotData(currentArray, canvas.width, canvas.height, rainbow);
@@ -157,6 +159,19 @@ function draw() {
 //Plotting and updating
 function plotData3D(inData, canvasWidth, canvasHeight) {
 
+  translate(-canvasWidth/2 + 100, 0);
+  for (let i = 0 ; i < inData.length ; i++) {
+    fill(255);
+    for (let j = 0 ; j < specialRows.length ; j += 2) {
+      if (specialRows[j] == i) {
+        fill(specialRows[j+1]);
+      }
+    }
+
+    translate(20*i + 5 , - inData[i] / 2 , 0);
+    box(20 , inData[i], 20);
+    translate(-20*i + 5, + inData[i] / 2 , 0);
+  }
 }
 
 function plotData(inData, canvasWidth, canvasHeight, color) {
