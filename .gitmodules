@@ -1,0 +1,4 @@
+[submodule "scripts/P5.js-World"]
+	path = scripts/P5.js-World
+	url = https://github.com/Dogacel/P5.js-World.git
+	branch = ScriptOnly
