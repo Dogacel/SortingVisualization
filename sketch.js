@@ -1,6 +1,8 @@
 
 //Global variables
 
+var world;
+
 var warnedData = false;
 
 var sizeSlider, sizeSliderValue;
@@ -58,6 +60,7 @@ function sleep(ms) {
 //Setup canvas and other tools.
 
 function setup() {
+
 
   colors = [color(0,0,255), color(0,255,0), color(255,0,0), color(255,255,0), color(255,0,255), color(0,255,255)];
   specialRows = [];
@@ -117,7 +120,15 @@ function setup() {
 
   canvas = createCanvas(canvasWidth, canvasHeight, WEBGL);
 
+  world = new World(canvas);
   console.log("Setup complete !");
+
+
+  maxSliderValue = maxSlider.value();
+  let tmp = randomArray(100, 0, maxSliderValue);
+
+  console.log(tmp);
+  addArray(tmp);
 
 }
 
@@ -132,14 +143,16 @@ function draw() {
     sizeSliderValue = sizeSlider.value();
 
     currentArray = randomArray(sizeSlider.value(), 0, maxSlider.value());
+    addArray(currentArray);
     updateRecieved();
   }
 
-  background(0);
+
 
   if (is3d) {
     //ambientLight(255);
     //normalMaterial()
+    background(0);
     rotateX(-PI/16);
     rotateY(PI/4.5);
     rotateZ(-1*PI/18);
@@ -147,14 +160,41 @@ function draw() {
     strokeWeight(1);
     plotData3D(currentArray, canvas.width, canvas.height);
   } else {
-    translate(-300, -300); //moves our drawing origin to the top left corner
-    plotData(currentArray, canvas.width, canvas.height, rainbow);
+    translate(-canvas.width/2, -canvas.height/2);
+    stroke(1);
+    world.tick();
+    world.drawWorld();
   }
 
 }
 
 
+function addArray(newArray) {
+  world.wobjects = [];
 
+  var width = world.canvas.width, height = world.canvas.height;
+  var dataWidth = newArray.length;
+  var maxS = Math.max.apply(null, newArray);
+  var minS = Math.min.apply(null, newArray);
+  var dataHeight = maxS - minS;
+
+  var scale = 1;
+  if (dataWidth > width / 4) {
+    scale = (4 * dataWidth / width);
+    warnDataOnce(scale);
+  }
+
+
+  for (let i = 0 ; i < newArray.length ; i++) {
+    var tmp = new WObject(
+      (scale * width / dataWidth),
+      map(newArray[i], 0, maxSliderValue, 0, height),
+      (i) * (scale * width / dataWidth),
+      height - map(newArray[i], 0, maxSliderValue, 0, height)
+    );
+    world.addWObject(tmp);
+  }
+}
 
 //Plotting and updating
 function plotData3D(inData, canvasWidth, canvasHeight) {
@@ -219,6 +259,7 @@ function plotData(inData, canvasWidth, canvasHeight, color) {
 }
 
 async function tick(dataArray, ...pivots) {
+  addArray(dataArray);
   if (dataArray == currentArray) {
     specialRows = [];
     for (let index = 0 ; index < pivots.length ; index++) {
